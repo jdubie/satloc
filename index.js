@@ -1,6 +1,7 @@
 /*
  * module dependencies
  */
+
 var fs     = require('fs'),
     events = require('events');
 
@@ -66,6 +67,8 @@ Satloc.prototype.parseHelper = function(data) {
     /*
      * remove empty lines and whitespace
      */
+    if (lines.length < 3) continue; /* continue if only two points */
+
     lines = lines.filter(function(line) { return line.length > 0; });
     lines = lines.map(function(line) { return line.trim(); });
 
