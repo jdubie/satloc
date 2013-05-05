@@ -1,8 +1,9 @@
 {
   "name": "satloc",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "parses satloc job files",
   "devDependencies": {
-    "mocha": "~1.9.0"
+    "mocha": "~1.9.0",
+    "should": "~1.2.2"
   }
 }

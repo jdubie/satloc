@@ -50,10 +50,7 @@ Satloc.prototype.parse = function() {
   });
 };
  
-// TODO: make LINE_REGEX a function of COORD_REGEX
-var COORD_REGEX = '(?:-)?[0-9]{1,3}\.[0-9]{1,8}'
 var FIELD_REGEX = /\.POL [0-9]+ [0-9]+\r\n\t(?:INC|EXC)\r\n/;
-var LINE_REGEX = /[\r\n\t]+(?:-)?[0-9]{1,3}\.[0-9]{1,8} (?:-)?[0-9]{1,3}\.[0-9]{1,8}[\r\n\t]+/;
 
 /*
  * parseHelper
@@ -62,25 +59,50 @@ var LINE_REGEX = /[\r\n\t]+(?:-)?[0-9]{1,3}\.[0-9]{1,8} (?:-)?[0-9]{1,3}\.[0-9]{
 Satloc.prototype.parseHelper = function(data) {
   var fields = data.split(FIELD_REGEX);
   for (field in fields) {
-    field = fields[field];
-    var lines = field.split(LINE_REGEX);
-    /*
-     * remove empty lines and whitespace
-     */
-    if (lines.length < 3) continue; /* continue if only two points */
+    lines = this.parseField(fields[field]);
+    if (lines == null) continue;
 
-    lines = lines.filter(function(line) { return line.length > 0; });
-    lines = lines.map(function(line) { return line.trim(); });
-
-    /*
-     * Reformat lines
-     */
-    lines = lines.map(function(line) {
-      line = line.split(/[ \t]+/);
-      return {
-        lat: parseFloat(line[0]),
-        lng: parseFloat(line[1])
-      }});
     this.emit('field', { points: lines });
   }
 }
+
+var COORD_REGEX = '(?:-)?[0-9]{1,3}\.[0-9]{1,8}'
+var LINE_REGEX = new RegExp('[\t]+(' + COORD_REGEX + ') (' + COORD_REGEX + ')[.\r\n]+');
+
+Satloc.prototype.parseField = function(field) {
+  if (field.match(/\.JOB/)) return null; /* drop header */
+  field = field.split('\n');
+
+  var result = [];
+
+  for (line in field) {
+    var match = field[line].match(LINE_REGEX);
+    if (match) {
+      result.push({
+        lat: parseFloat(match[1]),
+        lng: parseFloat(match[2])
+      });
+    }
+  }
+
+  return result;
+};
+
+//    var lines = field.split(LINE_REGEX);
+//    /*
+//     * remove empty lines and whitespace
+//     */
+//    if (lines.length < 3) continue; /* continue if only two points */
+//
+//    lines = lines.filter(function(line) { return line.length > 0; });
+//    lines = lines.map(function(line) { return line.trim(); });
+//
+//    /*
+//     * Reformat lines
+//     */
+//    lines = lines.map(function(line) {
+//      line = line.split(/[ \t]+/);
+//      return {
+//        lat: parseFloat(line[0]),
+//        lng: parseFloat(line[1])
+//      }});
